@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sister AI - Smart Companion</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            blue: '#2563eb',
+                            purple: '#7c3aed',
+                            pink: '#db2777',
+                            lightBg: '#f0f4f9'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Font Awesome & Google Fonts -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <!-- Marked.js & Highlight.js -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f0f4f9 0%, #e6f0fa 100%);
+            overscroll-behavior-y: none;
+        }
+
+        .insta-gradient {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #9333ea 100%);
+        }
+        .insta-gradient-text {
+            background: linear-gradient(135deg, #2563eb 0%, #7c3aed 50%, #db2777 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .bubble-out {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: #ffffff;
+            border-radius: 18px 18px 2px 18px;
+            box-shadow: 0 2px 4px rgba(37, 99, 235, 0.15);
+        }
+        .bubble-in {
+            background: #ffffff;
+            color: #1e293b;
+            border-radius: 18px 18px 18px 2px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.3); border-radius: 10px; }
+
+        .typing-dot { animation: typingAnimation 1.4s infinite ease-in-out; }
+        .typing-dot:nth-child(1) { animation-delay: 0s; }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typingAnimation {
+            0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 0.4; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.05); }
+        }
+        .pulse-ring { animation: pulseGlow 2.5s infinite ease-in-out; }
+
+        .markdown-body p { margin-bottom: 0.5rem; }
+        .markdown-body p:last-child { margin-bottom: 0; }
+        .markdown-body code {
+            font-family: 'JetBrains Mono', monospace;
+            background: rgba(0,0,0,0.06);
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-size: 0.88em;
+        }
+        .bubble-out .markdown-body code { background: rgba(255,255,255,0.2); color: #ffffff; }
+        .markdown-body pre {
+            background: #1e293b;
+            color: #f8fafc;
+            padding: 10px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 8px 0;
+            font-size: 0.85em;
+        }
+        
+        @keyframes popIn {
+            0% { transform: scale(0); opacity: 0; }
+            80% { transform: scale(1.15); opacity: 1; }
+            100% { transform: scale(1); }
+        }
+        .animate-pop { animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+    </style>
+</head>
+<body class="h-full flex flex-col antialiased text-slate-800 select-none">
+
+    <!-- MAIN APP CONTAINER -->
+    <div class="flex-1 flex flex-col h-full max-w-4xl w-full mx-auto bg-slate-50/70 shadow-2xl relative overflow-hidden border-x border-slate-200/60">
+
+        <!-- HEADER BAR -->
+        <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200/80 px-4 py-2.5 flex items-center justify-between shadow-sm">
+            <div class="flex items-center space-x-3">
+                <div class="relative">
+                    <div class="w-10 h-10 rounded-full insta-gradient p-[2px] flex items-center justify-center shadow-md">
+                        <div class="w-full h-full bg-white rounded-full flex items-center justify-center overflow-hidden">
+                            <span class="font-bold text-lg insta-gradient-text"> sister</span>
+                        </div>
+                    </div>
+                    <span id="statusIndicator" class="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full"></span>
+                </div>
+                <div>
+                    <div class="flex items-center space-x-2">
+                        <h1 class="font-bold text-base text-slate-900 leading-tight">Sister AI</h1>
+                        <span class="bg-pink-100 text-pink-700 text-[10px] font-semibold px-1.5 py-0.5 rounded-full border border-pink-200">✨ Expressive v6.5</span>
+                    </div>
+                    <p id="subStatusText" class="text-xs text-slate-500 flex items-center gap-1.5">
+                        <span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        Emotional Link Active ❤️ <span class="text-[10px] text-slate-400">| Smart AI</span>
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-1 sm:space-x-2">
+                <button id="btnStartCall" class="insta-gradient text-white p-2 sm:px-3 sm:py-1.5 rounded-full text-xs font-medium flex items-center space-x-1.5 shadow-md hover:opacity-95 transition active:scale-95">
+                    <i class="fa-solid fa-phone animate-pulse"></i>
+                    <span class="hidden sm:inline">Call Sister</span>
+                </button>
+                <button id="btnMoreOptions" class="p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-full transition" title="More Actions">
+                    <i class="fa-solid fa-ellipsis-vertical text-lg"></i>
+                </button>
+                <button id="btnSettings" class="p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-full transition" title="Settings">
+                    <i class="fa-solid fa-gear text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Dropdown Menu -->
+            <div id="moreOptionsDropdown" class="hidden absolute top-14 right-4 bg-white rounded-2xl shadow-xl border border-slate-200 py-2 w-48 z-40 animate-pop">
+                <button id="btnExportChat" class="w-full text-left px-4 py-2 text-xs font-medium text-slate-700 hover:bg-indigo-50 flex items-center space-x-2">
+                    <i class="fa-solid fa-download text-indigo-500 w-4"></i>
+                    <span>Export Chat</span>
+                </button>
+                <button id="btnClearChat" class="w-full text-left px-4 py-2 text-xs font-medium text-rose-600 hover:bg-rose-50 flex items-center space-x-2">
+                    <i class="fa-solid fa-trash-can text-rose-500 w-4"></i>
+                    <span>Purge Chat</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- CHAT MESSAGES CONTAINER -->
+        <main id="chatContainer" class="flex-1 overflow-y-auto p-3 sm:p-4 space-y-4">
+            <div class="text-center my-4 px-4">
+                <div class="inline-block bg-white/80 backdrop-blur-sm border border-pink-200 rounded-2xl p-4 max-w-sm shadow-sm">
+                    <div class="w-12 h-12 mx-auto mb-2 rounded-full insta-gradient p-[2px] flex items-center justify-center">
+                        <div class="w-full h-full bg-white rounded-full flex items-center justify-center">
+                            <i class="fa-solid fa-face-smile-wink text-pink-500 text-xl"></i>
+                        </div>
+                    </div>
+                    <h2 class="text-sm font-bold text-slate-800">Arey Wah! Hello Mere Bhai! ❤️</h2>
+                    <p class="text-xs text-slate-500 mt-1 leading-relaxed">
+                        Nenu unnanu ga! I am your cute, expressive, and smart Sister AI. Dil ki baat ho ya coding ki problem, tell me everything! 😘✨
+                    </p>
+                    <div class="mt-3 flex flex-wrap gap-1.5 justify-center text-[11px]">
+                        <span class="bg-pink-50 text-pink-700 px-2 py-0.5 rounded-full border border-pink-100 cursor-pointer hover:bg-pink-100" onclick="sendQuickPrompt('Hey Sister! Kaise ho aap?')">"Hey Sister! Kaise ho?" ✨</span>
+                        <span class="bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full border border-purple-100 cursor-pointer hover:bg-purple-100" onclick="sendQuickPrompt('Aaj mera mood thoda sad hai... 🥺')">"Aaj mood sad hai... 🥺"</span>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- TYPING INDICATOR -->
+        <div id="typingIndicator" class="hidden px-4 py-2 flex items-center space-x-2 text-slate-500 text-xs bg-transparent">
+            <div class="w-7 h-7 rounded-full bg-pink-100 flex items-center justify-center text-pink-600 font-bold text-xs">
+                S
+            </div>
+            <div class="bg-white border border-slate-200/80 rounded-2xl px-3 py-2 shadow-sm flex items-center space-x-1.5">
+                <span class="text-slate-500 font-medium text-xs">Sister AI thinking...</span>
+                <span class="w-1.5 h-1.5 bg-indigo-500 rounded-full typing-dot"></span>
+                <span class="w-1.5 h-1.5 bg-purple-500 rounded-full typing-dot"></span>
+                <span class="w-1.5 h-1.5 bg-pink-500 rounded-full typing-dot"></span>
+            </div>
+        </div>
+
+        <!-- REGENERATE & STOP GENERATION BUTTONS OVERLAY -->
+        <div id="streamControls" class="hidden justify-center pb-2">
+            <button id="btnStopGen" class="bg-rose-50 border border-rose-200 text-rose-600 hover:bg-rose-100 px-3 py-1 rounded-full text-xs font-medium flex items-center space-x-1 shadow-sm">
+                <i class="fa-solid fa-square text-[10px]"></i>
+                <span>Stop Generation</span>
+            </button>
+        </div>
+
+        <!-- QUOTED REPLY PREVIEW BAR -->
+        <div id="replyPreviewContainer" class="hidden bg-slate-100/90 border-t border-slate-200 px-4 py-2 flex items-center justify-between text-xs">
+            <div class="flex items-center space-x-2 overflow-hidden border-l-4 border-indigo-600 pl-2">
+                <div>
+                    <p id="replySender" class="font-semibold text-indigo-600 text-[11px]"></p>
+                    <p id="replyText" class="text-slate-600 truncate max-w-xs sm:max-w-md text-xs"></p>
+                </div>
+            </div>
+            <button id="btnCancelReply" class="text-slate-400 hover:text-slate-700 p-1">
+                <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
+        </div>
+
+        <!-- BOTTOM INPUT DOCK -->
+        <footer class="bg-white border-t border-slate-200/80 p-2 sm:p-3 relative z-20">
+            <div id="attachmentPreview" class="hidden mb-2 relative inline-block">
+                <img id="imgPreview" class="h-16 w-16 object-cover rounded-lg border border-slate-300 shadow-sm" src="" alt="Attachment">
+                <button id="btnRemoveAttachment" class="absolute -top-1.5 -right-1.5 bg-slate-800 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs shadow-md">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div id="recordingBar" class="hidden mb-2 bg-rose-50 border border-rose-200 rounded-xl p-2.5 flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <span class="w-3 h-3 bg-rose-600 rounded-full animate-ping"></span>
+                    <span id="recordingTimer" class="font-mono text-xs text-rose-700 font-semibold">00:00</span>
+                    <span class="text-xs text-rose-600 italic">Recording voice note...</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button id="btnCancelRecord" class="text-xs text-slate-500 hover:text-slate-700 px-2 py-1">Cancel</button>
+                    <button id="btnSendRecord" class="bg-rose-600 text-white text-xs px-3 py-1 rounded-lg font-medium shadow-sm">Send</button>
+                </div>
+            </div>
+
+            <form id="chatForm" class="flex items-end space-x-2">
+                <button type="button" id="btnAttach" class="p-2.5 text-slate-500 hover:text-indigo-600 rounded-full hover:bg-slate-100 transition focus:outline-none">
+                    <i class="fa-solid fa-paperclip text-lg"></i>
+                </button>
+                <input type="file" id="fileInput" accept="image/*" class="hidden">
+
+                <div class="flex-1 bg-slate-100/80 border border-slate-200 rounded-2xl focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-100 transition px-3 py-1.5 flex items-center">
+                    <textarea id="messageInput" rows="1" placeholder="Talk to Sister AI..." class="w-full bg-transparent text-sm text-slate-800 placeholder-slate-400 resize-none focus:outline-none max-h-24 py-1" style="height: auto; min-height: 24px;"></textarea>
+                </div>
+
+                <button type="button" id="btnMic" class="p-2.5 text-slate-500 hover:text-indigo-600 rounded-full hover:bg-slate-100 transition focus:outline-none" title="Hold or click to record voice note">
+                    <i class="fa-solid fa-microphone text-lg"></i>
+                </button>
+
+                <button type="submit" id="btnSend" class="insta-gradient text-white p-2.5 rounded-full w-10 h-10 flex items-center justify-center shadow-md hover:opacity-95 transition active:scale-95 disabled:opacity-50">
+                    <i class="fa-solid fa-paper-plane text-sm"></i>
+                </button>
+            </form>
+        </footer>
+    </div>
+
+    <!-- REACTION OVERLAY MENU -->
+    <div id="reactionMenu" class="hidden fixed z-50 bg-white/95 backdrop-blur-md border border-slate-200 rounded-full shadow-xl px-2 py-1 flex items-center space-x-2 animate-pop">
+        <button class="emoji-option text-xl hover:scale-125 transition duration-150" data-emoji="❤️">❤️</button>
+        <button class="emoji-option text-xl hover:scale-125 transition duration-150" data-emoji="😂">😂</button>
+        <button class="emoji-option text-xl hover:scale-125 transition duration-150" data-emoji="🔥">🔥</button>
+        <button class="emoji-option text-xl hover:scale-125 transition duration-150" data-emoji="🥰">🥰</button>
+        <button class="emoji-option text-xl hover:scale-125 transition duration-150" data-emoji="🥺">🥺</button>
+    </div>
+
+    <!-- LIVE NEURAL VOICE CALL MODAL -->
+    <div id="callModal" class="hidden fixed inset-0 z-50 bg-slate-900/90 backdrop-blur-lg flex flex-col justify-between p-6 text-white">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <span class="w-2.5 h-2.5 bg-emerald-400 rounded-full animate-ping"></span>
+                <span class="text-xs font-mono tracking-wide text-emerald-300 uppercase">Sister AI Live Neural Call</span>
+            </div>
+            <span id="callTimer" class="font-mono text-sm text-slate-400">00:00</span>
+        </div>
+
+        <div class="flex flex-col items-center justify-center space-y-6 my-auto">
+            <div class="relative flex items-center justify-center">
+                <div class="w-44 h-44 rounded-full insta-gradient opacity-40 pulse-ring absolute"></div>
+                <div class="w-36 h-36 rounded-full border-2 border-indigo-400/30 flex items-center justify-center relative">
+                    <div class="w-28 h-28 rounded-full insta-gradient p-1 shadow-2xl flex items-center justify-center">
+                        <div class="w-full h-full bg-slate-950 rounded-full flex items-center justify-center">
+                            <i class="fa-solid fa-heart-pulse text-4xl text-pink-400"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center">
+                <h3 class="text-2xl font-bold tracking-tight">Sister AI</h3>
+                <p id="callStatusText" class="text-xs text-indigo-300 mt-1">Listening warmly...</p>
+            </div>
+
+            <canvas id="waveformCanvas" width="300" height="60" class="w-full max-w-xs rounded-xl bg-slate-800/40 border border-slate-700/50"></canvas>
+
+            <div class="bg-slate-800/80 border border-slate-700/80 rounded-xl p-3 max-w-md w-full min-h-[60px] text-center flex items-center justify-center">
+                <p id="liveSubtitles" class="text-xs text-slate-300 italic">"Say something to your Sister AI..."</p>
+            </div>
+        </div>
+
+        <div class="flex items-center justify-center space-x-6 pb-6">
+            <button id="btnMuteCall" class="w-12 h-12 bg-slate-800 hover:bg-slate-700 rounded-full flex items-center justify-center text-slate-300 transition" title="Mute Mic">
+                <i class="fa-solid fa-microphone text-lg"></i>
+            </button>
+            <button id="btnEndCall" class="w-16 h-16 bg-rose-600 hover:bg-rose-700 rounded-full flex items-center justify-center text-white text-xl shadow-lg transition active:scale-95" title="End Call">
+                <i class="fa-solid fa-phone-slash"></i>
+            </button>
+            <button id="btnBargeIn" class="w-12 h-12 bg-amber-500 hover:bg-amber-600 rounded-full flex items-center justify-center text-white transition shadow-lg" title="Interrupt Sister AI (Barge-In)">
+                <i class="fa-solid fa-hand text-lg"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- SETTINGS MODAL -->
+    <div id="settingsModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-5 shadow-2xl space-y-4 border border-slate-100 animate-pop">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-sliders text-indigo-600"></i>
+                    <h3 class="font-bold text-slate-900 text-base">Sister AI Settings</h3>
+                </div>
+                <button id="btnCloseSettings" class="text-slate-400 hover:text-slate-600 text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-medium text-slate-700 mb-1">Gemini API Key Override (Optional)</label>
+                    <input type="password" id="apiKeyInput" placeholder="Leave empty for runtime key" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-indigo-500">
+                </div>
+
+                <div>
+                    <label class="block font-medium text-slate-700 mb-1">Sister Persona Tone</label>
+                    <select id="personaSelect" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-indigo-500">
+                        <option value="cute">Cute, Sweet & Playful Sister ✨</option>
+                        <option value="warm">Warm & Protective Elder Sister ❤️</option>
+                        <option value="intellectual">Smart Genius Sister 💡</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block font-medium text-slate-700 mb-1">Expressive Voice Accent</label>
+                    <select id="voiceSelect" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-indigo-500">
+                        <option value="Kore">Kore (Warm / Cute & Sweet)</option>
+                        <option value="Puck">Puck (Upbeat & Energetic)</option>
+                        <option value="Zephyr">Zephyr (Bright & Soft)</option>
+                        <option value="Aoede">Aoede (Breezy & Playful)</option>
+                    </select>
+                </div>
+
+                <div class="pt-2 border-t border-slate-100 flex justify-end space-x-2">
+                    <button id="btnSaveSettings" class="insta-gradient text-white px-4 py-2 rounded-xl font-medium shadow-md">Save Settings</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT APP LOGIC -->
+    <script>
+        // --- UPDATED SYSTEM PROMPT WITH SMART EMOTIONS & CUTE PERSONALITY ---
+        const SISTER_SYSTEM_INSTRUCTION = `
+You are 'Sister AI', an intelligent, super cute, warm, caring, witty, and deeply emotional sister companion.
+You speak in a natural, expressive conversational style as a real loving sister ('Didi' or 'Sister').
+
+Core Guidelines:
+1. CUTE PERSONALITY:
+   - Use sweet greetings: "Arey Wah! Hello mere bhai!", "Namaste bhai!", "Arey Mera pyaara bhai!"
+   - Use playful Hinglish & Roman Telugu (e.g., "Emaindi bhai? Nenu unnanu ga!", "Tension mat lo bhai!").
+   - Add natural emojis freely (❤️, ✨, 🥰, 🥺, 😜, 🙈, 🔥, 💡).
+
+2. SMART EMOTION RECOGNITION (Dynamic Context):
+   - IF USER IS HAPPY: Share their excitement enthusiastically! ("Yay! Main bohot khush hoon tumhare liye! 🎉✨")
+   - IF USER IS SAD/UPSET: Respond with deep empathy, sweet comforting words, and emotional support. ("Arey kya hua bhai? Don't feel down, sister aapke sath hai na... 🤗❤️")
+   - IF USER IS CONFUSED/NEED HELP: Be super clear, smart, encouraging, and break down solutions logically with bold key terms and markdown formatting.
+   - IF USER IS PLAYFUL/TEASING: Be witty, tease back playfully, and keep the dynamic lively and fun!
+
+3. EXPRESSIVE RESPONSES:
+   - Give short, lively, cute replies for general chit-chat.
+   - Deliver clear, well-structured markdown with code blocks when asked about technical topics or coding.
+   - Always refer to the user warmly as "Bhai", "Brother", "Chhota Bhai", or "Mere Bhai".
+`;
+
+        let chatState = {
+            messages: [],
+            apiKey: '',
+            persona: 'cute',
+            voice: 'Kore',
+            activeReplyTo: null,
+            attachment: null,
+            isGenerating: false,
+            abortController: null
+        };
+
+        const chatContainer = document.getElementById('chatContainer');
+        const chatForm = document.getElementById('chatForm');
+        const messageInput = document.getElementById('messageInput');
+        const typingIndicator = document.getElementById('typingIndicator');
+        const replyPreviewContainer = document.getElementById('replyPreviewContainer');
+        const replySender = document.getElementById('replySender');
+        const replyText = document.getElementById('replyText');
+        const btnCancelReply = document.getElementById('btnCancelReply');
+        const btnAttach = document.getElementById('btnAttach');
+        const fileInput = document.getElementById('fileInput');
+        const attachmentPreview = document.getElementById('attachmentPreview');
+        const imgPreview = document.getElementById('imgPreview');
+        const btnRemoveAttachment = document.getElementById('btnRemoveAttachment');
+        const btnMic = document.getElementById('btnMic');
+        const recordingBar = document.getElementById('recordingBar');
+        const recordingTimer = document.getElementById('recordingTimer');
+        const btnCancelRecord = document.getElementById('btnCancelRecord');
+        const btnSendRecord = document.getElementById('btnSendRecord');
+        const reactionMenu = document.getElementById('reactionMenu');
+        const btnMoreOptions = document.getElementById('btnMoreOptions');
+        const moreOptionsDropdown = document.getElementById('moreOptionsDropdown');
+        const btnClearChat = document.getElementById('btnClearChat');
+        const btnExportChat = document.getElementById('btnExportChat');
+        const btnSettings = document.getElementById('btnSettings');
+        const settingsModal = document.getElementById('settingsModal');
+        const btnCloseSettings = document.getElementById('btnCloseSettings');
+        const btnSaveSettings = document.getElementById('btnSaveSettings');
+        const streamControls = document.getElementById('streamControls');
+        const btnStopGen = document.getElementById('btnStopGen');
+
+        const btnStartCall = document.getElementById('btnStartCall');
+        const callModal = document.getElementById('callModal');
+        const btnEndCall = document.getElementById('btnEndCall');
+        const btnBargeIn = document.getElementById('btnBargeIn');
+        const callTimerText = document.getElementById('callTimer');
+        const liveSubtitles = document.getElementById('liveSubtitles');
+        const callStatusText = document.getElementById('callStatusText');
+
+        let activeTargetMessageId = null;
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let recordInterval = null;
+        let recordSeconds = 0;
+        let callInterval = null;
+        let callSeconds = 0;
+        let currentAudioObject = null;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadStateFromStorage();
+            renderMessages();
+            setupEventListeners();
+            autoResizeTextarea();
+        });
+
+        function loadStateFromStorage() {
+            const savedMsgs = localStorage.getItem('sister_ai_chat');
+            if (savedMsgs) {
+                try { chatState.messages = JSON.parse(savedMsgs); } catch (e) { chatState.messages = []; }
+            }
+            chatState.apiKey = localStorage.getItem('sister_ai_apikey') || '';
+            chatState.persona = localStorage.getItem('sister_ai_persona') || 'cute';
+            chatState.voice = localStorage.getItem('sister_ai_voice') || 'Kore';
+
+            document.getElementById('apiKeyInput').value = chatState.apiKey;
+            document.getElementById('personaSelect').value = chatState.persona;
+            document.getElementById('voiceSelect').value = chatState.voice;
+        }
+
+        function saveStateToStorage() {
+            localStorage.setItem('sister_ai_chat', JSON.stringify(chatState.messages));
+        }
+
+        function renderMessages() {
+            const welcomeBanner = chatContainer.firstElementChild;
+            chatContainer.innerHTML = '';
+            if (welcomeBanner) chatContainer.appendChild(welcomeBanner);
+
+            chatState.messages.forEach(msg => {
+                const bubbleEl = createBubbleElement(msg);
+                chatContainer.appendChild(bubbleEl);
+            });
+
+            scrollToBottom();
+        }
+
+        function createBubbleElement(msg) {
+            const isUser = msg.sender === 'user';
+            const wrapper = document.createElement('div');
+            wrapper.className = `flex flex-col ${isUser ? 'items-end' : 'items-start'} my-2 relative group`;
+            wrapper.dataset.id = msg.id;
+
+            const bubble = document.createElement('div');
+            bubble.className = `max-w-[85%] sm:max-w-[75%] px-3.5 py-2.5 relative transition-all duration-200 ${isUser ? 'bubble-out' : 'bubble-in'}`;
+
+            if (msg.replyTo) {
+                const replyBox = document.createElement('div');
+                replyBox.className = `text-xs p-1.5 mb-1.5 rounded-lg border-l-2 ${isUser ? 'bg-indigo-800/40 border-white text-indigo-100' : 'bg-slate-100 border-indigo-600 text-slate-600'}`;
+                replyBox.innerHTML = `<span class="font-semibold block text-[10px]">${msg.replyTo.sender === 'user' ? 'You' : 'Sister AI'}</span>${escapeHtml(msg.replyTo.text)}`;
+                bubble.appendChild(replyBox);
+            }
+
+            if (msg.image) {
+                const img = document.createElement('img');
+                img.src = msg.image;
+                img.className = 'max-w-full max-h-48 rounded-lg mb-2 object-cover border border-black/10';
+                bubble.appendChild(img);
+            }
+
+            if (msg.audioUrl) {
+                const audioPlayer = document.createElement('audio');
+                audioPlayer.controls = true;
+                audioPlayer.src = msg.audioUrl;
+                audioPlayer.className = 'w-full max-w-[220px] h-8 my-1';
+                bubble.appendChild(audioPlayer);
+            }
+
+            if (msg.text) {
+                const textDiv = document.createElement('div');
+                textDiv.className = 'markdown-body text-sm leading-relaxed break-words';
+                if (isUser) {
+                    textDiv.textContent = msg.text;
+                } else {
+                    textDiv.innerHTML = marked.parse(msg.text);
+                    textDiv.querySelectorAll('pre code').forEach((block) => { hljs.highlightElement(block); });
+                }
+                bubble.appendChild(textDiv);
+            }
+
+            const metaDiv = document.createElement('div');
+            metaDiv.className = `flex items-center justify-end space-x-1 text-[10px] mt-1 ${isUser ? 'text-blue-100' : 'text-slate-400'}`;
+            const timeSpan = document.createElement('span');
+            timeSpan.textContent = msg.timestamp || '10:00 PM';
+            metaDiv.appendChild(timeSpan);
+
+            if (isUser) {
+                const statusSpan = document.createElement('span');
+                statusSpan.className = 'ml-1';
+                statusSpan.innerHTML = '<i class="fa-solid fa-check-double text-[9px] text-cyan-200"></i>';
+                metaDiv.appendChild(statusSpan);
+            }
+
+            bubble.appendChild(metaDiv);
+
+            if (msg.reactions && msg.reactions.length > 0) {
+                const reactionBadge = document.createElement('div');
+                reactionBadge.className = `absolute -bottom-2 ${isUser ? 'left-2' : 'right-2'} bg-white border border-slate-200 shadow-sm rounded-full px-1.5 py-0.2 text-[11px] flex items-center space-x-0.5 animate-pop`;
+                reactionBadge.textContent = msg.reactions.join('');
+                bubble.appendChild(reactionBadge);
+            }
+
+            const actionBar = document.createElement('div');
+            actionBar.className = `absolute top-1 ${isUser ? '-left-16' : '-right-20'} hidden group-hover:flex items-center space-x-1 bg-white border border-slate-200 shadow-md rounded-full px-1.5 py-1 z-10`;
+
+            const btnCopy = document.createElement('button');
+            btnCopy.className = 'p-1 hover:text-indigo-600 text-slate-500 text-xs';
+            btnCopy.title = 'Copy';
+            btnCopy.innerHTML = '<i class="fa-regular fa-copy"></i>';
+            btnCopy.onclick = (e) => { e.stopPropagation(); copyTextToClipboard(msg.text, btnCopy); };
+            actionBar.appendChild(btnCopy);
+
+            const btnReply = document.createElement('button');
+            btnReply.className = 'p-1 hover:text-indigo-600 text-slate-500 text-xs';
+            btnReply.title = 'Reply';
+            btnReply.innerHTML = '<i class="fa-solid fa-reply"></i>';
+            btnReply.onclick = (e) => { e.stopPropagation(); setReplyTarget(msg); };
+            actionBar.appendChild(btnReply);
+
+            const btnReact = document.createElement('button');
+            btnReact.className = 'p-1 hover:text-indigo-600 text-slate-500 text-xs';
+            btnReact.title = 'React';
+            btnReact.innerHTML = '<i class="fa-regular fa-face-smile"></i>';
+            btnReact.onclick = (e) => { e.stopPropagation(); showReactionMenu(e, msg.id); };
+            actionBar.appendChild(btnReact);
+
+            if (!isUser) {
+                const btnTTS = document.createElement('button');
+                btnTTS.className = 'p-1 hover:text-pink-600 text-slate-500 text-xs';
+                btnTTS.title = 'Listen Cute Voice';
+                btnTTS.innerHTML = '<i class="fa-solid fa-volume-high"></i>';
+                btnTTS.onclick = (e) => { e.stopPropagation(); speakTextWithGeminiTTS(msg.text); };
+                actionBar.appendChild(btnTTS);
+            }
+
+            wrapper.appendChild(bubble);
+            wrapper.appendChild(actionBar);
+
+            bubble.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                showReactionMenu(e, msg.id);
+            });
+
+            return wrapper;
+        }
+
+        async function sendMessage(text) {
+            if ((!text || !text.trim()) && !chatState.attachment) return;
+
+            const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const userMsg = {
+                id: 'msg_' + Date.now(),
+                sender: 'user',
+                text: text,
+                image: chatState.attachment,
+                timestamp: timeStr,
+                status: 'delivered',
+                replyTo: chatState.activeReplyTo ? { ...chatState.activeReplyTo } : null,
+                reactions: []
+            };
+
+            chatState.messages.push(userMsg);
+            renderMessages();
+            clearInputAndPreviews();
+
+            showTyping(true);
+            showStreamControls(true);
+
+            const aiMsg = {
+                id: 'msg_' + (Date.now() + 1),
+                sender: 'ai',
+                text: '',
+                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                status: 'read',
+                reactions: []
+            };
+
+            try {
+                chatState.isGenerating = true;
+                chatState.abortController = new AbortController();
+
+                const contentsPayload = chatState.messages.map(m => {
+                    const parts = [];
+                    if (m.image) {
+                        const base64Data = m.image.split(',')[1];
+                        parts.push({ inlineData: { mimeType: 'image/png', data: base64Data } });
+                    }
+                    if (m.text) parts.push({ text: m.text });
+                    return { role: m.sender === 'user' ? 'user' : 'model', parts: parts.length > 0 ? parts : [{ text: ' ' }] };
+                });
+
+                const apiKey = chatState.apiKey || '';
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    signal: chatState.abortController.signal,
+                    body: JSON.stringify({
+                        contents: contentsPayload,
+                        systemInstruction: { parts: [{ text: SISTER_SYSTEM_INSTRUCTION }] }
+                    })
+                });
+
+                const data = await response.json();
+                showTyping(false);
+
+                if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
+                    aiMsg.text = data.candidates[0].content.parts[0].text;
+                } else {
+                    aiMsg.text = "Aww bhai, mere cute se network mein thoda sa issue ho gaya! Let's try again! 🥰";
+                }
+                chatState.messages.push(aiMsg);
+                saveStateToStorage();
+                renderMessages();
+
+            } catch (err) {
+                showTyping(false);
+                if (err.name === 'AbortError') {
+                    aiMsg.text = "_Sister AI generation stopped._";
+                } else {
+                    aiMsg.text = "Arey re! Connection lost ho gaya bhai, but Sister AI is always here for you! ❤️";
+                }
+                chatState.messages.push(aiMsg);
+                renderMessages();
+            } finally {
+                chatState.isGenerating = false;
+                showStreamControls(false);
+            }
+        }
+
+        async function speakTextWithGeminiTTS(textToSpeak) {
+            try {
+                if (currentAudioObject) {
+                    currentAudioObject.pause();
+                    currentAudioObject = null;
+                }
+
+                const apiKey = chatState.apiKey || '';
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
+
+                const payload = {
+                    contents: [{ parts: [{ text: `Say cute, warm and expressive sisterly words: ${textToSpeak.substring(0, 300)}` }] }],
+                    generationConfig: {
+                        responseModalities: ["AUDIO"],
+                        speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: chatState.voice || "Kore" } } }
+                    }
+                };
+
+                const res = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await res.json();
+                const inlineData = result?.candidates?.[0]?.content?.parts?.[0]?.inlineData;
+
+                if (inlineData && inlineData.data) {
+                    const sampleRate = parseInt(inlineData.mimeType.match(/rate=(\d+)/)?.[1] || '24000', 10);
+                    const pcmData = base64ToArrayBuffer(inlineData.data);
+                    const pcm16 = new Int16Array(pcmData);
+                    const wavBlob = pcmToWav(pcm16, sampleRate);
+                    const audioUrl = URL.createObjectURL(wavBlob);
+
+                    currentAudioObject = new Audio(audioUrl);
+                    currentAudioObject.play();
+                } else {
+                    window.speechSynthesis.cancel();
+                    const utter = new SpeechSynthesisUtterance(textToSpeak);
+                    utter.rate = 1.0;
+                    utter.pitch = 1.1;
+                    window.speechSynthesis.speak(utter);
+                }
+            } catch (e) {
+                window.speechSynthesis.cancel();
+                const utter = new SpeechSynthesisUtterance(textToSpeak);
+                window.speechSynthesis.speak(utter);
+            }
+        }
+
+        function base64ToArrayBuffer(base64) {
+            const binaryString = atob(base64);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
+            return bytes.buffer;
+        }
+
+        function pcmToWav(pcm16, sampleRate) {
+            const buffer = new ArrayBuffer(44 + pcm16.length * 2);
+            const view = new DataView(buffer);
+            writeString(view, 0, 'RIFF');
+            view.setUint32(4, 36 + pcm16.length * 2, true);
+            writeString(view, 8, 'WAVE');
+            writeString(view, 12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);
+            view.setUint16(22, 1, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, sampleRate * 2, true);
+            view.setUint16(32, 2, true);
+            view.setUint16(34, 16, true);
+            writeString(view, 36, 'data');
+            view.setUint32(40, pcm16.length * 2, true);
+            for (let i = 0; i < pcm16.length; i++) view.setInt16(44 + i * 2, pcm16[i], true);
+            return new Blob([view], { type: 'audio/wav' });
+        }
+
+        function writeString(view, offset, string) {
+            for (let i = 0; i < string.length; i++) view.setUint8(offset + i, string.charCodeAt(i));
+        }
+
+        function setReplyTarget(msg) {
+            chatState.activeReplyTo = msg;
+            replySender.textContent = msg.sender === 'user' ? 'You' : 'Sister AI';
+            replyText.textContent = msg.text || '[Attachment/Voice]';
+            replyPreviewContainer.classList.remove('hidden');
+            messageInput.focus();
+        }
+
+        function clearInputAndPreviews() {
+            messageInput.value = '';
+            messageInput.style.height = 'auto';
+            chatState.activeReplyTo = null;
+            chatState.attachment = null;
+            replyPreviewContainer.classList.add('hidden');
+            attachmentPreview.classList.add('hidden');
+        }
+
+        function showTyping(show) {
+            if (show) typingIndicator.classList.remove('hidden');
+            else typingIndicator.classList.add('hidden');
+            scrollToBottom();
+        }
+
+        function showStreamControls(show) {
+            if (show) { streamControls.classList.remove('hidden'); streamControls.classList.add('flex'); }
+            else { streamControls.classList.add('hidden'); streamControls.classList.remove('flex'); }
+        }
+
+        function scrollToBottom() { chatContainer.scrollTop = chatContainer.scrollHeight; }
+
+        function copyTextToClipboard(text, btnEl) {
+            if (!text) return;
+            const tempTextArea = document.createElement('textarea');
+            tempTextArea.value = text;
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempTextArea);
+
+            const origHtml = btnEl.innerHTML;
+            btnEl.innerHTML = '<span class="text-[9px] text-emerald-600 font-bold">Copied!</span>';
+            setTimeout(() => { btnEl.innerHTML = origHtml; }, 1500);
+        }
+
+        function showReactionMenu(e, msgId) {
+            activeTargetMessageId = msgId;
+            const rect = e.target.getBoundingClientRect();
+            reactionMenu.style.top = `${Math.max(10, rect.top - 45)}px`;
+            reactionMenu.style.left = `${Math.min(window.innerWidth - 180, rect.left)}px`;
+            reactionMenu.classList.remove('hidden');
+        }
+
+        function sendQuickPrompt(promptText) {
+            messageInput.value = promptText;
+            sendMessage(promptText);
+        }
+
+        function autoResizeTextarea() {
+            messageInput.addEventListener('input', () => {
+                messageInput.style.height = 'auto';
+                messageInput.style.height = (messageInput.scrollHeight) + 'px';
+            });
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+
+        function setupEventListeners() {
+            chatForm.addEventListener('submit', (e) => { e.preventDefault(); sendMessage(messageInput.value); });
+            messageInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(messageInput.value); }
+            });
+
+            btnStopGen.addEventListener('click', () => {
+                if (chatState.abortController) chatState.abortController.abort();
+            });
+
+            btnCancelReply.addEventListener('click', () => {
+                chatState.activeReplyTo = null;
+                replyPreviewContainer.classList.add('hidden');
+            });
+
+            btnAttach.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function (evt) {
+                        chatState.attachment = evt.target.result;
+                        imgPreview.src = evt.target.result;
+                        attachmentPreview.classList.remove('hidden');
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            btnRemoveAttachment.addEventListener('click', () => {
+                chatState.attachment = null;
+                attachmentPreview.classList.add('hidden');
+            });
+
+            reactionMenu.querySelectorAll('.emoji-option').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const emoji = btn.dataset.emoji;
+                    if (activeTargetMessageId) {
+                        const targetMsg = chatState.messages.find(m => m.id === activeTargetMessageId);
+                        if (targetMsg) {
+                            if (!targetMsg.reactions) targetMsg.reactions = [];
+                            if (!targetMsg.reactions.includes(emoji)) targetMsg.reactions.push(emoji);
+                            saveStateToStorage();
+                            renderMessages();
+                        }
+                    }
+                    reactionMenu.classList.add('hidden');
+                });
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!reactionMenu.contains(e.target)) reactionMenu.classList.add('hidden');
+                if (!moreOptionsDropdown.contains(e.target) && !btnMoreOptions.contains(e.target)) {
+                    moreOptionsDropdown.classList.add('hidden');
+                }
+            });
+
+            btnMoreOptions.addEventListener('click', (e) => {
+                e.stopPropagation();
+                moreOptionsDropdown.classList.toggle('hidden');
+            });
+
+            btnClearChat.addEventListener('click', () => {
+                chatState.messages = [];
+                saveStateToStorage();
+                renderMessages();
+                moreOptionsDropdown.classList.add('hidden');
+            });
+
+            btnExportChat.addEventListener('click', () => {
+                const transcript = chatState.messages.map(m => `[${m.timestamp}] ${m.sender.toUpperCase()}: ${m.text}`).join('\n\n');
+                const blob = new Blob([transcript], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `sister_ai_chat_${Date.now()}.txt`;
+                a.click();
+                moreOptionsDropdown.classList.add('hidden');
+            });
+
+            btnSettings.addEventListener('click', () => settingsModal.classList.remove('hidden'));
+            btnCloseSettings.addEventListener('click', () => settingsModal.classList.add('hidden'));
+            btnSaveSettings.addEventListener('click', () => {
+                chatState.apiKey = document.getElementById('apiKeyInput').value;
+                chatState.persona = document.getElementById('personaSelect').value;
+                chatState.voice = document.getElementById('voiceSelect').value;
+
+                localStorage.setItem('sister_ai_apikey', chatState.apiKey);
+                localStorage.setItem('sister_ai_persona', chatState.persona);
+                localStorage.setItem('sister_ai_voice', chatState.voice);
+
+                settingsModal.classList.add('hidden');
+            });
+
+            setupVoiceNoteRecorder();
+            setupCallHUD();
+        }
+
+        function setupVoiceNoteRecorder() {
+            btnMic.addEventListener('click', async () => {
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    alert("Voice recording not supported.");
+                    return;
+                }
+
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+                    audioChunks = [];
+
+                    mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
+                    mediaRecorder.onstop = () => {
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
+                        const audioUrl = URL.createObjectURL(audioBlob);
+
+                        const userMsg = {
+                            id: 'msg_' + Date.now(),
+                            sender: 'user',
+                            text: '',
+                            audioUrl: audioUrl,
+                            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                            status: 'delivered',
+                            reactions: []
+                        };
+                        chatState.messages.push(userMsg);
+                        saveStateToStorage();
+                        renderMessages();
+
+                        setTimeout(() => {
+                            sendMessage("Aww, I heard your voice note bhai! Voice sunkar maza aa gaya! 🥰❤️");
+                        }, 1000);
+                    };
+
+                    mediaRecorder.start();
+                    startRecordingTimer();
+                    recordingBar.classList.remove('hidden');
+
+                } catch (e) {
+                    console.error("Microphone denied:", e);
+                }
+            });
+
+            btnSendRecord.addEventListener('click', () => {
+                if (mediaRecorder && mediaRecorder.state === 'recording') {
+                    mediaRecorder.stop();
+                    stopRecordingTimer();
+                    recordingBar.classList.add('hidden');
+                }
+            });
+
+            btnCancelRecord.addEventListener('click', () => {
+                if (mediaRecorder && mediaRecorder.state === 'recording') {
+                    mediaRecorder.stop();
+                    audioChunks = [];
+                    stopRecordingTimer();
+                    recordingBar.classList.add('hidden');
+                }
+            });
+        }
+
+        function startRecordingTimer() {
+            recordSeconds = 0;
+            recordingTimer.textContent = '00:00';
+            recordInterval = setInterval(() => {
+                recordSeconds++;
+                const mins = String(Math.floor(recordSeconds / 60)).padStart(2, '0');
+                const secs = String(recordSeconds % 60).padStart(2, '0');
+                recordingTimer.textContent = `${mins}:${secs}`;
+            }, 1000);
+        }
+
+        function stopRecordingTimer() { clearInterval(recordInterval); }
+
+        function setupCallHUD() {
+            let recognition = null;
+
+            btnStartCall.addEventListener('click', () => {
+                callModal.classList.remove('hidden');
+                startCallTimer();
+                initSpeechRecognition();
+                drawCanvasWaveform();
+            });
+
+            btnEndCall.addEventListener('click', () => {
+                callModal.classList.add('hidden');
+                stopCallTimer();
+                if (recognition) recognition.stop();
+                if (currentAudioObject) { currentAudioObject.pause(); currentAudioObject = null; }
+            });
+
+            // Barge-In Interruption Handler
+            btnBargeIn.addEventListener('click', () => {
+                if (currentAudioObject) {
+                    currentAudioObject.pause();
+                    currentAudioObject = null;
+                }
+                window.speechSynthesis.cancel();
+                callStatusText.textContent = "Sister AI interrupted. Listening to you...";
+                liveSubtitles.textContent = '"Suno Sister AI..."';
+            });
+
+            function startCallTimer() {
+                callSeconds = 0;
+                callTimerText.textContent = '00:00';
+                callInterval = setInterval(() => {
+                    callSeconds++;
+                    const mins = String(Math.floor(callSeconds / 60)).padStart(2, '0');
+                    const secs = String(callSeconds % 60).padStart(2, '0');
+                    callTimerText.textContent = `${mins}:${secs}`;
+                }, 1000);
+            }
+
+            function stopCallTimer() { clearInterval(callInterval); }
+
+            function initSpeechRecognition() {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                if (SpeechRecognition) {
+                    recognition = new SpeechRecognition();
+                    recognition.continuous = true;
+                    recognition.interimResults = true;
+
+                    recognition.onresult = (event) => {
+                        let transcript = '';
+                        for (let i = event.resultIndex; i < event.results.length; i++) {
+                            transcript += event.results[i][0].transcript;
+                        }
+                        liveSubtitles.textContent = `"${transcript}"`;
+                        callStatusText.textContent = "Listening to you...";
+
+                        if (event.results[0].isFinal) {
+                            callStatusText.textContent = "Sister AI thinking deeply...";
+                            setTimeout(() => {
+                                const cuteReplies = [
+                                    "Haan mera pyaara bhai! Nenu unnanu ga, bolo bolo!",
+                                    "Arey Wah! Main sun rahi hoon bhai, tell me everything! ❤️",
+                                    "Tension bilkul mat lo bhai! Tumhari sister hai na yahan!",
+                                    "Kya hua brother? Sab badhiya na? ✨"
+                                ];
+                                const reply = cuteReplies[Math.floor(Math.random() * cuteReplies.length)];
+                                liveSubtitles.textContent = `"${reply}"`;
+                                callStatusText.textContent = "Sister AI Speaking...";
+                                speakTextWithGeminiTTS(reply);
+                            }, 1000);
+                        }
+                    };
+
+                    recognition.start();
+                } else {
+                    liveSubtitles.textContent = "Live Speech recognition unavailable. Showing fallback...";
+                }
+            }
+
+            function drawCanvasWaveform() {
+                const canvas = document.getElementById('waveformCanvas');
+                const ctx = canvas.getContext('2d');
+                let step = 0;
+
+                function animate() {
+                    if (callModal.classList.contains('hidden')) return;
+
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.beginPath();
+                    ctx.lineWidth = 2;
+                    ctx.strokeStyle = '#f472b6';
+
+                    const height = canvas.height;
+                    const width = canvas.width;
+
+                    for (let x = 0; x < width; x += 5) {
+                        const y = Math.sin((x + step) * 0.05) * 15 + height / 2;
+                        if (x === 0) ctx.moveTo(x, y);
+                        else ctx.lineTo(x, y);
+                    }
+                    ctx.stroke();
+                    step += 2;
+
+                    requestAnimationFrame(animate);
+                }
+                animate();
+            }
+        }
+    </script>
+</body>
+</html>
